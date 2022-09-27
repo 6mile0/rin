@@ -1,0 +1,10 @@
+{
+  "name": "coder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "date-utils": "^1.2.21",
+    "discord.js": "^14.4.0"
+  }
+}
