@@ -1,15 +1,10 @@
-// こうかとん22
-// バージョンはGitHubのコミットを参照
-
-// <注意> NGワードファイル(words.txt)はGitHubに上げないこと！(コミット前確認)
-
 // ========================================================
 // 環境設定
 // ========================================================
 
 const token = "MTAyMzQyMzI1NDI1NTM5MDc5Mw.G8jffM.oyR9ivejn3mD9ipXLaKc0ZrXe2P9S2TaNm3XmM"; // DiscordのBotのトークン(本番環境)
 const botname = "Coder"; // Botの名前
-const ver = "v1.1.0"; // 現在バージョン
+const ver = "v1.1.2"; // 現在バージョン
 
 // ========================================================
 
@@ -113,9 +108,17 @@ function convertNowTime(time) { // 保存されているミリ秒を現在時刻
     return `${hours.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 }
 
+function padZero(num) {
+    return num.toString().padStart(2, '0');
+}
+
 client.on("messageCreate", async (msg) => {
     if (msg.author.bot) { // bot同士の会話回避
         return;
+    }
+
+    if (msg.content == "!msgTest") {
+        msg.reply(msg.member.nickname + "さんのメッセージを受け取りました");
     }
 
     if (msg.content === "!help") {
@@ -140,10 +143,18 @@ client.on("messageCreate", async (msg) => {
                 console.log(data);
                 if (data.length == 2) {
                     if (data[0].length > 500) {
-                        msg.channel.send("> タイマー名は500文字以内にしてください");
+                        msg.channel.send("> タイマー名は400文字以内にしてください");
                         return;
                     } else {
                         if (data[1].match(/^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)) {
+
+                            var date = new Date(); // 現在時刻
+                            var t = time.split(":"); // 時間をコロンで分割
+
+                            date.setHours(date.getHours() + Number(t[0]));
+                            date.setMinutes(date.getMinutes() + Number(t[1]));
+                            date.setSeconds(date.getSeconds() + Number(t[2]));
+
                             const timerEmbed = new EmbedBuilder()
                                 .setColor(0x0099FF)
                                 .setTitle('タイマーセット完了')
@@ -151,17 +162,20 @@ client.on("messageCreate", async (msg) => {
                                 .addFields(
                                     { name: '名称', value: data[0] },
                                     { name: '時間', value: data[1] },
+                                    { name: 'タイムアップ', value: `${date.getFullYear()}年 ${padZero(date.getMonth() + 1)}月 ${padZero(date.getDate())}日 ${padZero(date.getHours())}:${padZero(date.getMinutes())}:${padZero(date.getSeconds())}` },
                                 )
                                 .setTimestamp()
                             msg.channel.send({ embeds: [timerEmbed] });
 
                             var [setId, ms] = setTime(data[0], data[1], msg.channelId, msg.author.id); // タイマー設定
-                            console.log(ms)
+                            console.log(ms);
+
                             timerDataAry.push({ // タイマーリストに追加
                                 "id": msg.author.id,
                                 "userName": msg.author.username,
-                                "timerName": data[0],
-                                "time": data[1],
+                                "nickName": msg.member.nickname,
+                                "timerName": data[0] + "[既定のプリセット]",
+                                "time": time,
                                 "intervalID": setId,
                                 "ms": ms,
                             });
@@ -176,14 +190,23 @@ client.on("messageCreate", async (msg) => {
                         msg.channel.send("> プリセットが指定されました");
                         var time = timePreset[timePreset.findIndex(({ name }) => name === data[0])]["time"]; // プリセットの時間を取得
                         var [setId, ms] = setTime(data[0] + "[既定のプリセット]", time, msg.channelId, msg.author.id); // タイマー設定
+
                         timerDataAry.push({ // タイマーリストに追加
                             "id": msg.author.id,
                             "userName": msg.author.username,
+                            "nickName": msg.member.nickname,
                             "timerName": data[0] + "[既定のプリセット]",
                             "time": time,
                             "intervalID": setId,
                             "ms": ms,
                         });
+
+                        var date = new Date(); // 現在時刻
+                        var t = time.split(":"); // 時間をコロンで分割
+
+                        date.setHours(date.getHours() + Number(t[0]));
+                        date.setMinutes(date.getMinutes() + Number(t[1]));
+                        date.setSeconds(date.getSeconds() + Number(t[2]));
 
                         const timerEmbed = new EmbedBuilder()
                             .setColor(0x0099FF)
@@ -192,9 +215,11 @@ client.on("messageCreate", async (msg) => {
                             .addFields(
                                 { name: '名称', value: data[0] + "[既定のプリセット]" },
                                 { name: '時間', value: time },
+                                { name: 'タイムアップ', value: `${date.getFullYear()}年 ${padZero(date.getMonth() + 1)}月 ${padZero(date.getDate())}日 ${padZero(date.getHours())}:${padZero(date.getMinutes())}:${padZero(date.getSeconds())}` },
                             )
                             .setTimestamp()
                         msg.channel.send({ embeds: [timerEmbed] });
+
                         flag = !flag;
                     } else {
                         msg.channel.send("> プリセットが存在しないか，不正なフォーマットです。例に従い，再度入力してください。\nフォーマット例: `<タイマー名称> 00:01:00`");
@@ -271,18 +296,33 @@ client.on("messageCreate", async (msg) => {
             timerDataAry.forEach(function (element, index) {
                 var time = convertNowTime(element["ms"]);
                 console.log(time);
-                const timerListsEmbed = new EmbedBuilder()
-                    .setColor(0x0099FF)
-                    .setTitle('タイマー' + (index + 1))
-                    .setDescription(`現在設定されている${index + 1} / ${timerDataAry.length}つ目のタイマーです。`)
-                    .addFields(
-                        { name: '名称', value: element["timerName"] },
-                        { name: '時間', value: element["time"] },
-                        { name: '残り', value: time },
-                        { name: '設定者', value: element["userName"] },
-                    )
-                    .setTimestamp()
-                msg.channel.send({ embeds: [timerListsEmbed] });
+                if (element["nickName"] == null) {
+                    const timerListsEmbed = new EmbedBuilder()
+                        .setColor(0x0099FF)
+                        .setTitle('タイマー' + (index + 1))
+                        .setDescription(`現在設定されている${index + 1} / ${timerDataAry.length}つ目のタイマーです。`)
+                        .addFields(
+                            { name: '名称', value: element["timerName"] },
+                            { name: '時間', value: element["time"] },
+                            { name: '残り', value: time },
+                            { name: '設定者', value: element["userName"] + "さん" },
+                        )
+                        .setTimestamp()
+                    msg.channel.send({ embeds: [timerListsEmbed] });
+                } else {
+                    const timerListsEmbed = new EmbedBuilder()
+                        .setColor(0x0099FF)
+                        .setTitle('タイマー' + (index + 1))
+                        .setDescription(`現在設定されている${index + 1} / ${timerDataAry.length}つ目のタイマーです。`)
+                        .addFields(
+                            { name: '名称', value: element["timerName"] },
+                            { name: '時間', value: element["time"] },
+                            { name: '残り', value: time },
+                            { name: '設定者', value: element["userName"] + "(" + element["nickName"] + ")" + "さん" },
+                        )
+                        .setTimestamp()
+                    msg.channel.send({ embeds: [timerListsEmbed] });
+                }
             });
         }
     }
