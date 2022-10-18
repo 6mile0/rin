@@ -139,7 +139,7 @@ client.on("messageCreate", async (msg) => {
                 flag = !flag; // フラグを戻す
                 flagUserId = ""; // 初期化
             } else if (msg.content.match(/[^\s]+/g)) { // 空白区切りになっているか
-                var data = msg.content.split(" ");
+                var data = msg.content.split(/\s/);
                 console.log(data);
                 if (data.length == 2) {
                     if (data[0].length > 500) {
