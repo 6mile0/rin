@@ -328,51 +328,48 @@ client.on("messageCreate", async (msg) => {
     }
 
 
-    if (msg.content.substring(0, 2) == "!p") { // !pで始まるメッセージのみ反応
-        const stdout = execSync("ls | grep -v -E 'index.js|node_modules|yarn.lock|package.json|help.txt' | xargs rm -rf")
+    if (msg.content.substring(0, 3) == "!py") { // !pで始まるメッセージのみ反応
+        const stdout = execSync("ls | grep -v -E 'index.js|node_modules|yarn.lock|package.json|help.txt|Dockerfile' | xargs rm -rf")
 
         if (!stdout) {
             msg.reply("例外処理が発生しました。ろくまいるにメンションしてください。");
         } else {
             console.log("> 実行ファイルおよびコアファイル以外の削除成功\n");
-            console.log("実行内容：\n=================\n" + msg.content.substring(8).slice(0, -3) + "\n=================\n");
-            if (msg.content.substring(3, 7) == "```") {
-                var output = msg.content.substring(6).slice(0, -3);
+            var output = msg.content.substring(7).slice(0, -3);
+            console.log("実行内容：\n=================\n" + output + "\n=================\n");
+            if (disableLibraries.some(val => output.includes(val))) {
+                disableLibraries.forEach(function (val) {
+                    if (output.includes(val)) {
+                        msg.reply("`" + val + "`は使用することができません。詳細は`!help`を参照してください。\n");
+                        console.log("> 使用不可ライブラリ検出\n");
+                    }
+                });
+            } else {
+                console.log("> 使用不可ライブラリなし\n");
+                try {
+                    fs.writeFileSync('main.py', output);
+                    console.log('> main.pyを作成しました\n');
+                } catch (e) {
+                    //エラー処理
+                    console.log(e);
+                }
 
-                if (disableLibraries.some(val => output.includes(val))) {
-                    disableLibraries.forEach(function (val) {
-                        if (output.includes(val)) {
-                            msg.reply("`" + val + "`は使用することができません。詳細は`!help`を参照してください。\n");
-                            console.log("> 使用不可ライブラリ検出\n");
+                exec("python3 main.py", { timeout: 2000 }, function (error, stdout, stderr) {
+                    // シェル上でコマンドを実行できなかった場合のエラー処理
+                    if (error !== null) {
+                        console.log('exec error: ' + error);
+                        if (!stderr) {
+                            msg.reply("実行時間制限(2s)か，標準出力のバッファを超過したため，強制的にプロセスを終了しました。コードに問題ないか確認してください。\n`もしかして: [ 標準入力を使っていませんか？, 無限ループになっていませんか？ ]`");
+                        } else {
+                            msg.reply("実行に失敗しました。エラー文を確認してください。" + "```" + stderr + "```\n");
                         }
-                    });
-                } else {
-                    console.log("> 使用不可ライブラリなし\n");
-                    try {
-                        fs.writeFileSync('main.py', output);
-                        console.log('> main.pyを作成しました\n');
-                    } catch (e) {
-                        //エラー処理
-                        console.log(e);
+                        return;
                     }
 
-                    exec("python3 main.py", { timeout: 2000 }, function (error, stdout, stderr) {
-                        // シェル上でコマンドを実行できなかった場合のエラー処理
-                        if (error !== null) {
-                            console.log('exec error: ' + error);
-                            if (!stderr) {
-                                msg.reply("実行時間制限(2s)か，標準出力のバッファを超過したため，強制的にプロセスを終了しました。コードに問題ないか確認してください。\n`もしかして: [ 標準入力を使っていませんか？, 無限ループになっていませんか？ ]`");
-                            } else {
-                                msg.reply("実行に失敗しました。エラー文を確認してください。" + "```" + stderr + "```\n");
-                            }
-                            return;
-                        }
-
-                        // シェル上で実行したコマンドの標準出力が stdout に格納されている
-                        msg.reply("実行結果：" + "```" + stdout + "```");
-                        console.log('実行結果: \n=================\n' + stdout + '\n=================');
-                    });
-                }
+                    // シェル上で実行したコマンドの標準出力が stdout に格納されている
+                    msg.reply("実行結果：" + "```" + stdout + "```");
+                    console.log('実行結果: \n=================\n' + stdout + '\n=================');
+                });
 
             }
         }
