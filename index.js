@@ -2,9 +2,9 @@
 // 環境設定
 // ========================================================
 
-const token = "MTAyMzQyMzI1NDI1NTM5MDc5Mw.G8jffM.oyR9ivejn3mD9ipXLaKc0ZrXe2P9S2TaNm3XmM"; // DiscordのBotのトークン(本番環境)
-const botname = "Coder"; // Botの名前
-const ver = "v1.1.2"; // 現在バージョン
+const token = "MTAyODIwMDM3NjI3ODcyMDU3Mw.GTWcpV.ibkBATvN72XabdZfvRIjC694Eu3oX0dq2ytsvI"; // DiscordのBotのトークン(本番環境)
+const botname = "rin"; // Botの名前
+const ver = "v1.1.3"; // 現在バージョン
 
 // ========================================================
 
@@ -329,14 +329,14 @@ client.on("messageCreate", async (msg) => {
 
 
     if (msg.content.substring(0, 2) == "!p") { // !pで始まるメッセージのみ反応
-        const stdout = execSync("ls | grep -v -E 'index.js|node_modules|yarn.lock|package.json' | xargs rm -rf")
+        const stdout = execSync("ls | grep -v -E 'index.js|node_modules|yarn.lock|package.json|help.txt' | xargs rm -rf")
 
         if (!stdout) {
             msg.reply("例外処理が発生しました。ろくまいるにメンションしてください。");
         } else {
             console.log("> 実行ファイルおよびコアファイル以外の削除成功\n");
             console.log("実行内容：\n=================\n" + msg.content.substring(8).slice(0, -3) + "\n=================\n");
-            if (msg.content.substring(3, 6) == "```") {
+            if (msg.content.substring(3, 7) == "```") {
                 var output = msg.content.substring(6).slice(0, -3);
 
                 if (disableLibraries.some(val => output.includes(val))) {
