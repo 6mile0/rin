@@ -363,29 +363,33 @@ client.on("messageCreate", async (msg) => {
                     console.log(e);
                 }
 
-                exec("python3 main.py", { timeout: 2000 }, function (error, stdout, stderr) {
-                    // シェル上でコマンドを実行できなかった場合のエラー処理
-                    if (error !== null) {
-                        console.log('exec error: ' + error);
-                        if (!stderr) {
-                            msg.reply("実行時間制限(2s)か，標準出力のバッファを超過したため，強制的にプロセスを終了しました。コードに問題ないか確認してください。\n`もしかして: [ 標準入力を使っていませんか？, 無限ループになっていませんか？ ]`");
-                        } else {
-                            msg.reply("実行に失敗しました。エラー文を確認してください。" + "```" + omitedText(stderr) + "```\n");
+                try {
+                    exec("python3 main.py", { timeout: 2000 }, function (error, stdout, stderr) {
+                        // シェル上でコマンドを実行できなかった場合のエラー処理
+                        if (error !== null) {
+                            console.log('exec error: ' + error);
+                            if (!stderr) {
+                                msg.reply("実行時間制限(2s)か，標準出力のバッファを超過したため，強制的にプロセスを終了しました。コードに問題ないか確認してください。\n`もしかして: [ 標準入力を使っていませんか？, 無限ループになっていませんか？ ]`");
+                            } else {
+                                msg.reply("実行に失敗しました。エラー文を確認してください。" + "```" + omitedText(stderr) + "```\n");
+                            }
+                            return;
                         }
-                        return;
-                    }
 
-                    // シェル上で実行したコマンドの標準出力が stdout に格納されている
-                    if (stdout.length > 2000) {
-                        msg.reply("標準出力が2000文字を超過したため，省略して表示します．\n実行結果：```" + omitedText(stdout) + "```\n");
-                    } else if (stdout.length == 0) {
-                        msg.reply("標準出力は空ですが，入力されたプログラムは正常に実行されました．\n");
-                    } else {
-                        msg.reply("実行結果：" + "```" + omitedText(stdout) + "```");
-                        console.log('実行結果: \n=================\n' + stdout + '\n=================');
-                    }
-                });
-
+                        // シェル上で実行したコマンドの標準出力が stdout に格納されている
+                        if (stdout.length > 2000) {
+                            msg.reply("標準出力が2000文字を超過したため，省略して表示します．\n実行結果：```" + omitedText(stdout) + "```\n");
+                        } else if (stdout.length == 0) {
+                            msg.reply("標準出力は空ですが，入力されたプログラムは正常に実行されました．\n");
+                        } else {
+                            msg.reply("実行結果：" + "```" + omitedText(stdout) + "```");
+                            console.log('実行結果: \n=================\n' + stdout + '\n=================');
+                        }
+                    });
+                } catch (e) {
+                    //エラー処理
+                    console.log(e);
+                }
             }
         }
     }
