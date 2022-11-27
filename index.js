@@ -55,6 +55,15 @@ var flagNum = 0;
 var delflag = false;
 var delflagUserId = "";
 
+function omitedText(text) {
+    const omitMax = 1700;
+    if (text.length > omitMax) {
+        return text.substring(0, omitMax) + "...";
+    } else {
+        return text;
+    }
+}
+
 
 // タイマー削除関数
 function delLists(name) {
@@ -361,14 +370,20 @@ client.on("messageCreate", async (msg) => {
                         if (!stderr) {
                             msg.reply("実行時間制限(2s)か，標準出力のバッファを超過したため，強制的にプロセスを終了しました。コードに問題ないか確認してください。\n`もしかして: [ 標準入力を使っていませんか？, 無限ループになっていませんか？ ]`");
                         } else {
-                            msg.reply("実行に失敗しました。エラー文を確認してください。" + "```" + stderr + "```\n");
+                            msg.reply("実行に失敗しました。エラー文を確認してください。" + "```" + omitedText(stderr) + "```\n");
                         }
                         return;
                     }
 
                     // シェル上で実行したコマンドの標準出力が stdout に格納されている
-                    msg.reply("実行結果：" + "```" + stdout + "```");
-                    console.log('実行結果: \n=================\n' + stdout + '\n=================');
+                    if (stdout.length > 2000) {
+                        msg.reply("標準出力が2000文字を超過したため，省略して表示します．\n実行結果：```" + omitedText(stdout) + "```\n");
+                    } else if (stdout / length == 0) {
+                        msg.reply("標準出力は空ですが，入力されたプログラムは正常に実行されました．\n");
+                    } else {
+                        msg.reply("実行結果：" + "```" + omitedText(stdout) + "```");
+                        console.log('実行結果: \n=================\n' + stdout + '\n=================');
+                    }
                 });
 
             }
