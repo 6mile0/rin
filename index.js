@@ -378,7 +378,7 @@ client.on("messageCreate", async (msg) => {
                     // シェル上で実行したコマンドの標準出力が stdout に格納されている
                     if (stdout.length > 2000) {
                         msg.reply("標準出力が2000文字を超過したため，省略して表示します．\n実行結果：```" + omitedText(stdout) + "```\n");
-                    } else if (stdout / length == 0) {
+                    } else if (stdout.length == 0) {
                         msg.reply("標準出力は空ですが，入力されたプログラムは正常に実行されました．\n");
                     } else {
                         msg.reply("実行結果：" + "```" + omitedText(stdout) + "```");
