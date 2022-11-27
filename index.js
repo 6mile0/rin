@@ -338,7 +338,7 @@ client.on("messageCreate", async (msg) => {
 
 
     if (msg.content.substring(0, 3) == "!py") { // !pで始まるメッセージのみ反応
-        const stdout = execSync("ls | grep -v -E 'index.js|node_modules|yarn.lock|package.json|help.txt|Dockerfile' | xargs rm -rf")
+        const stdout = execSync("rm -rf /src/*"); // 一旦/tmpをクリア
 
         if (!stdout) {
             msg.reply("例外処理が発生しました。ろくまいるにメンションしてください。");
@@ -356,7 +356,7 @@ client.on("messageCreate", async (msg) => {
             } else {
                 console.log("> 使用不可ライブラリなし\n");
                 try {
-                    fs.writeFileSync('main.py', output);
+                    fs.writeFileSync('./src/main.py', output);
                     console.log('> main.pyを作成しました\n');
                 } catch (e) {
                     //エラー処理
@@ -364,7 +364,7 @@ client.on("messageCreate", async (msg) => {
                 }
 
                 try {
-                    exec("python3 main.py", { timeout: 2000 }, function (error, stdout, stderr) {
+                    exec("python3 src/main.py", { timeout: 2000 }, function (error, stdout, stderr) {
                         // シェル上でコマンドを実行できなかった場合のエラー処理
                         if (error !== null) {
                             console.log('exec error: ' + error);
