@@ -158,7 +158,7 @@ client.on("messageCreate", async (msg) => {
                         if (data[1].match(/^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)) {
 
                             var date = new Date(); // 現在時刻
-                            var t = time.split(":"); // 時間をコロンで分割
+                            var t = data[1].split(":"); // 時間をコロンで分割
 
                             date.setHours(date.getHours() + Number(t[0]));
                             date.setMinutes(date.getMinutes() + Number(t[1]));
@@ -184,7 +184,7 @@ client.on("messageCreate", async (msg) => {
                                 "userName": msg.author.username,
                                 "nickName": msg.member.nickname,
                                 "timerName": data[0] + "[既定のプリセット]",
-                                "time": time,
+                                "time": data[1],
                                 "intervalID": setId,
                                 "ms": ms,
                             });
