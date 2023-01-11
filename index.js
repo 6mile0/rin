@@ -183,7 +183,7 @@ client.on("messageCreate", async (msg) => {
                                 "id": msg.author.id,
                                 "userName": msg.author.username,
                                 "nickName": msg.member.nickname,
-                                "timerName": data[0] + "[既定のプリセット]",
+                                "timerName": data[0],
                                 "time": data[1],
                                 "intervalID": setId,
                                 "ms": ms,
