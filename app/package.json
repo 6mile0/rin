@@ -7,6 +7,8 @@
     "@discordjs/voice": "^0.11.0",
     "date-utils": "^1.2.21",
     "discord.js": "^14.4.0",
-    "libsodium-wrappers": "^0.7.10"
+    "express": "^4.18.2",
+    "libsodium-wrappers": "^0.7.10",
+    "mongoose": "^6.9.0"
   }
 }
