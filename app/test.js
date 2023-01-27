@@ -1,18 +1,34 @@
-// モジュールをロード
-const mongoose = require("mongoose");
+const express = require('express')
+const { MongoClient } = require('mongodb')
 
-// データベース接続
-mongoose.connect(
-    "mongodb://mongo/test",  // testというDBに接続しています
-    {
-        useUnifiedTopology: true,
-        useNewUrlParser: true
-    }
-);
+const PORT = 8080
+const HOST = '0.0.0.0'
 
-const db = mongoose.connection;
-db.once("opne", () => {
-    // 接続できると以下のログが出力されます。
-    // 接続できない場合はエラーが出力されます。
-    console.log("Success MongoDB connected!!");
-});
+const app = express()
+
+app.get('/', async (req, res) => {
+    const result = await collection.find({}).toArray()
+    res.json(result)
+})
+
+app.listen(8080, HOST, () => {
+    console.log(`Listening on port ${PORT}`)
+})
+
+const URL = 'mongodb://rin:rindb@mongo/rin?authSource=admin'
+const client = new MongoClient(URL)
+
+try {
+    client.connect()
+    console.log('Succesfully connected to mongo')
+} catch (e) {
+    console.error(e)
+}
+const db = client.db()
+
+// Prepare initial data
+const doc1 = { name: 'Echizen', age: 24 }
+const doc2 = { name: 'Bob', age: 32 }
+
+const collection = db.collection('test-collection')
+collection.insertMany([doc1, doc2])

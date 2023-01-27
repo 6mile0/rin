@@ -7,3 +7,5 @@ RUN apt-get update && apt-get upgrade
 WORKDIR /app
 COPY /app ./
 RUN yarn install
+
+CMD [ "node", "test.js" ]
