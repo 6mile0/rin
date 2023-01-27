@@ -8,4 +8,4 @@ WORKDIR /app
 COPY /app ./
 RUN yarn install
 
-CMD [ "node", "test.js" ]
+CMD [ "node", "app.js" ]

@@ -1,15 +1,5 @@
-// ========================================================
-// 環境設定
-// ========================================================
-
-// const token = "MTAyODIwMDM3NjI3ODcyMDU3Mw.GTWcpV.ibkBATvN72XabdZfvRIjC694Eu3oX0dq2ytsvI"; // DiscordのBotのトークン(本番環境)
-const token = "MTAyNzE2NDc0ODYyMzY1MDg0Ng.GFEUaU.FjTQl7mVb9k7WPLMNEw82FvvpXswo-gRx6XdEw"
-const botname = "rin"; // Botの名前
-const ver = "v2.0.0"; // 現在バージョン
-
-// ========================================================
-
-require('date-utils');
+const { token, botname, ver } = require('./rin.json'); // 設定ファイル読み込み
+const mongoose = require('mongoose');
 const fs = require('node:fs');
 const path = require('node:path');
 var exec = require('child_process').exec;
@@ -72,6 +62,7 @@ client.on("messageCreate", async (msg) => {
     }
 
     if (msg.content == "!msgTest") {
+        console.log(msg.menber)
         msg.reply(msg.member.nickname + "さんのメッセージを受け取りました");
     }
 });

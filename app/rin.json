@@ -1,5 +1,8 @@
 {
     "token": "MTAyNzE2NDc0ODYyMzY1MDg0Ng.GFEUaU.FjTQl7mVb9k7WPLMNEw82FvvpXswo-gRx6XdEw",
+    "productionToken": "MTAyODIwMDM3NjI3ODcyMDU3Mw.GTWcpV.ibkBATvN72XabdZfvRIjC694Eu3oX0dq2ytsvI<これは本番環境用>",
+    "botname": "rin",
+    "ver": "2.0.0",
     "clientId": "1027164748623650846",
     "guildId": "961180704694239243"
 }

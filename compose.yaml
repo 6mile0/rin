@@ -2,19 +2,31 @@ version: "3"
 services:
   bot:
     build: .
+    restart: always
     tty: true
     volumes:
       - ./app:/app
     depends_on:
       - mongo
+
+  mongo-express:
+    image: mongo-express
+    restart: always
     ports:
-      - "127.0.0.1:8080:8080"
+      - 8081:8081
+    depends_on:
+      - mongo
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=mongoadmin
+      - ME_CONFIG_MONGODB_SERVER=mongo
 
   mongo:
     image: mongo
+    restart: always
     volumes:
       - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
       - ./mongo/db:/data/db
-    environment:
-      - MONGO_INITDB_DATABASE=admin
+    ports:
+      - 27017:27017
     command: [mongod, --auth]

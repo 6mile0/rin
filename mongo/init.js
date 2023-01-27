@@ -1,10 +1,17 @@
+db = db.getSiblingDB("admin");
 db.createUser({
-    user: 'rin',
-    pwd: 'rindb',
+    user: "admin",
+    pwd: "mongoadmin",
+    roles: [{ role: "root", db: "admin" }]
+});
+
+db = db.getSiblingDB("rin");
+db.createUser({
+    user: "rin",
+    pwd: "rin",
     roles: [
-        {
-            role: 'readWrite',
-            db: 'rin',
-        },
-    ],
-})
+        { role: "dbOwner", db: "rin" },
+        { role: "dbAdmin", db: "rin" },
+        { role: "readWrite", db: "rin" }
+    ]
+});
