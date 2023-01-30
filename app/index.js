@@ -9,16 +9,6 @@ const client = new Client({
 const helptxt = fs.readFileSync('help.txt', 'utf-8'); // ヘルプテキスト読み込み
 console.log(botname + " " + ver + " を起動します");
 
-function omitedText(text) { // メッセージ長制限
-    const omitMax = 1700;
-    if (text.length > omitMax) {
-        return text.substring(0, omitMax) + "...";
-    } else {
-        return text;
-    }
-}
-
-
 client.once("ready", async () => {
     client.user.setPresence({ activities: [{ name: "Ver " + ver }] });
     console.log("準備完了");
@@ -36,6 +26,10 @@ client.on("messageCreate", async (msg) => {
 
     if (msg.content === "!help") {
         msg.reply(helptxt);
+    }
+
+    if (msg.content === "!err") {
+        msg.send({ files: ['./img/errorCode.png'] });
     }
 
     if (msg.content.substring(0, 3) == "!py") { // !pで始まるメッセージのみ反応
@@ -98,7 +92,7 @@ client.on("messageCreate", async (msg) => {
                 } else if (stdout.length == 0) {
                     msg.reply("標準出力は空ですが、入力されたプログラムは正常に実行されました。\n");
                 } else {
-                    msg.reply("実行結果：" + "```" + omitedText(stdout) + "```");
+                    msg.reply("実行結果：" + "```" + stdout + "```");
                     console.log('実行結果: \n=================\n' + stdout + '\n=================');
                 }
             });
