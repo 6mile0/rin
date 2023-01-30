@@ -1,4 +1,4 @@
-const { token, botname, ver, execSpace, execUserID, execGroupID } = require('./config.json');
+const { token, botName, ver, execSpace, execUserID, execGroupID } = require('./config.json');
 const fs = require('node:fs');
 var exec = require('child_process').exec;
 const { Client, GatewayIntentBits } = require("discord.js");
@@ -7,7 +7,7 @@ const client = new Client({
 });
 
 const helptxt = fs.readFileSync('help.txt', 'utf-8'); // ヘルプテキスト読み込み
-console.log(botname + " " + ver + " を起動します");
+console.log(botName + " " + ver + " を起動します");
 
 client.once("ready", async () => {
     client.user.setPresence({ activities: [{ name: "Ver " + ver }] });
@@ -71,7 +71,6 @@ client.on("messageCreate", async (msg) => {
                 // シェル上でコマンドを実行できなかった場合のエラー処理
                 if (error !== null) {
                     console.log('exec error: ' + error);
-                    msg.reply("実行に失敗しました(E1004)");
                     if (!stderr) {
                         msg.reply("既定の実行可能時間を超過しましたので実行を停止しました。リソース枯渇対策のため、高負荷のコード実行を制限しております。実行するコードをご確認ください。(E1003)\n詳細は`!err`で確認できます。");
                     } else {
@@ -80,24 +79,24 @@ client.on("messageCreate", async (msg) => {
                     return;
                 }
 
-                if (stdout.length > 2000) {
-                    try {
-                        fs.writeFileSync('/Containers/c1/run/output.txt', stdout);
-                    } catch (e) {
-                        msg.reply("実行結果の出力に失敗しました。(E1002)\nエラーの詳細は`!err`で確認できます。");
-                    }
-                    msg.reply("標準出力が2000文字を超過したため、txtファイルに出力しました。");
-                    msg.channel.send({ files: ['/Containers/c1/run/output.txt'] })
-                } else if (stdout.length == 0) {
+                try { // 標準出力をファイルに出力
+                    fs.writeFileSync('/Containers/c1/run/output.txt', stdout);
+                } catch {
+                    msg.reply("実行結果の出力に失敗しました。(E1002)\nエラーの詳細は`!err`で確認できます。");
+                }
+
+                if (stdout.length == 0) {
                     msg.reply("標準出力は空ですが、入力されたプログラムは正常に実行されました。\n");
                 } else {
-                    msg.reply("実行結果：" + "```" + stdout + "```");
                     console.log('実行結果: \n=================\n' + stdout + '\n=================');
+                    msg.reply("実行結果は以下です。ご確認ください。");
+                    msg.channel.send({ files: ['/Containers/c1/run/output.txt'] })
                 }
             });
         } catch (e) {
             //エラー処理
             console.log(e);
+            msg.reply("重大なエラーが発生しました。エラーの詳細は`!err`で確認できます。");
         }
     }
 });
