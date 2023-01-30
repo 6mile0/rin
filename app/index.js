@@ -20,9 +20,20 @@ const client = new Client({
 });
 
 
+
 const helptxt = fs.readFileSync('help.txt', 'utf-8'); // ヘルプテキスト読み込み
 
 console.log(botname + " " + ver + " を起動します");
+
+function omitedText(text) {
+    const omitMax = 1700;
+    if (text.length > omitMax) {
+        return text.substring(0, omitMax) + "...";
+    } else {
+        return text;
+    }
+}
+
 
 client.once("ready", async () => {
     client.user.setPresence({ activities: [{ name: "Ver " + ver }] });
@@ -44,44 +55,68 @@ client.on("messageCreate", async (msg) => {
     }
 
     if (msg.content.substring(0, 3) == "!py") { // !pで始まるメッセージのみ反応
-        var output = msg.content.substring(7).slice(0, -3);
-        console.log("実行内容：\n=================\n" + output + "\n=================\n");
-        try {
-            fs.writeFileSync('./Containers/c1/run/main.py', output);
-            console.log('> main.pyを作成しました\n');
-        } catch (e) {
-            //エラー処理
-            console.log(e);
+        var message = msg.content.split('```'); // メッセージを```で分割 (Ex:[ '!py', 'print("helloWorld")', '', 'こんにちは', '' ])
+        console.log(message.length);
+        console.log(message)
+
+        if (message.length <= 3) { // メッセージの要素数が2以下の場合は標準入力がないと判断
+            var execCode = message[1].trim(); // メッセージの2番目の要素を実行内容とする
+            try {
+                fs.writeFileSync('/Containers/c1/run/main.py', execCode);
+                fs.writeFileSync('/Containers/c1/run/input.txt', ""); // 標準入力ファイルを空にする
+                console.log('OK: 実行ファイルを生成しました\n');
+                console.log('OK: 標準入力ファイル初期化完了\n');
+            } catch (e) {
+                //エラー処理
+                console.log(e);
+                msg.reply("実行に失敗しました(E1001a)");
+            }
+        } else {
+            var execCode = message[1].trim(); // メッセージの2番目の要素を実行内容とする
+            var standardInput = message[3].trim(); // メッセージの4番目の要素を標準入力とする
+            msg.channel.send("`標準入力を認識しました`");
+            try {
+                fs.writeFileSync('/Containers/c1/run/main.py', execCode);
+                fs.writeFileSync('/Containers/c1/run/input.txt', standardInput);
+                console.log('OK: 実行ファイルを生成しました\n');
+                console.log('OK: 標準入力ファイルを生成しました\n');
+            } catch (e) {
+                //エラー処理
+                console.log(e);
+                msg.reply("実行に失敗しました(E1001b)");
+            }
         }
 
+        console.log("実行内容：\n=================\n" + execCode + "\n=================\n");
+
         try {
-            exec("docker run --name c1 --rm -u $(id -u):$(id -g) -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v /app/Containers/c1/run:/run:ro c1:latest > /app/Containers/c1/run/output.txt 2>&1", { timeout: 300000 }, function (error, stdout, stderr) {
+            exec("docker run --name c2 --rm -u $(id -u):$(id -g) -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v /home/kakeru/work/rin/Containers/c1/run:/run:ro c1:latest", { timeout: 10000 }, function (error, stdout, stderr) {
                 // シェル上でコマンドを実行できなかった場合のエラー処理
                 if (error !== null) {
                     console.log('exec error: ' + error);
+                    msg.reply("実行に失敗しました(E1002)");
                     if (!stderr) {
-                        msg.reply("実行時間制限(30s)か，標準出力のバッファを超過したため，強制的にプロセスを終了しました。コードに問題ないか確認してください。\n`もしかして: [ 標準入力を使っていませんか？, 無限ループになっていませんか？ ]`");
+                        msg.reply("既定の実行可能時間を超過しましたので実行を停止しました。リソース枯渇対策のため、高負荷のコード実行を制限しております。実行するコードをご確認ください。(E1003)");
                     } else {
-                        msg.reply("実行に失敗しました。エラー文を確認してください。" + "```" + stderr + "```\n");
+                        msg.reply("実行に失敗しました。エラー文を確認してください。(E1004)" + "```" + stderr + "```\n");
                     }
                     return;
                 }
 
-                var text = fs.readFileSync("./Containers/c1/run/output.txt", 'utf8');
-                var lines = text.toString().split('¥n');
-                for (var line of lines) {
-                    console.log(line)
+                if (stdout.length > 2000) {
+                    try {
+                        fs.writeFileSync('/Containers/c1/run/output.txt', stdout);
+                    } catch (e) {
+                        msg.reply("実行結果の出力に失敗しました(E1002)");
+                    }
+                    msg.reply("標準出力が2000文字を超過したため、txtファイルに出力しました。");
+                    msg.channel.send({ files: ['/Containers/c1/run/output.txt'] })
+                } else if (stdout.length == 0) {
+                    msg.reply("標準出力は空ですが、入力されたプログラムは正常に実行されました。\n");
+                } else {
+                    msg.reply("実行結果：" + "```" + omitedText(stdout) + "```");
+                    console.log('実行結果: \n=================\n' + stdout + '\n=================');
                 }
-
-                // // シェル上で実行したコマンドの標準出力が stdout に格納されている
-                // if (stdout.length > 2000) {
-                //     msg.reply("標準出力が2000文字を超過したため，省略して表示します．\n実行結果：```" + omitedText(stdout) + "```\n");
-                // } else if (stdout.length == 0) {
-                //     msg.reply("標準出力は空ですが，入力されたプログラムは正常に実行されました．\n");
-                // } else {
-                //     msg.reply("実行結果：" + "```" + omitedText(stdout) + "```");
-                //     console.log('実行結果: \n=================\n' + stdout + '\n=================');
-                // }
             });
         } catch (e) {
             //エラー処理
