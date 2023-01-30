@@ -29,7 +29,7 @@ client.on("messageCreate", async (msg) => {
     }
 
     if (msg.content === "!err") {
-        msg.send({ files: ['./img/errorCode.png'] });
+        msg.channel.send({ files: ['./img/errorCode.png'] });
     }
 
     if (msg.content.substring(0, 3) == "!py") { // !pで始まるメッセージのみ反応
