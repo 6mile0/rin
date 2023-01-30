@@ -1,4 +1,4 @@
-const { token, botname, ver } = require('./config.json');
+const { token, botname, ver, execSpace, execUserID, execGroupID } = require('./config.json');
 const fs = require('node:fs');
 var exec = require('child_process').exec;
 const { Client, GatewayIntentBits } = require("discord.js");
@@ -74,7 +74,7 @@ client.on("messageCreate", async (msg) => {
         console.log("実行内容：\n=================\n" + execCode + "\n=================\n");
 
         try {
-            exec("docker run --name c2 --rm -u $(id -u):$(id -g) -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v /home/kakeru/work/rin/Containers/c1/run:/run:ro c1:latest", { timeout: 10000 }, function (error, stdout, stderr) {
+            exec(`docker run --name c1 --rm -u ${execUserID}:${execGroupID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${execSpace}/Containers/c1/run:/run:ro c1`, { timeout: 10000 }, function (error, stdout, stderr) {
                 // シェル上でコマンドを実行できなかった場合のエラー処理
                 if (error !== null) {
                     console.log('exec error: ' + error);
