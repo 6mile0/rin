@@ -14,7 +14,6 @@ client.once("ready", async () => {
     console.log("準備完了");
 });
 
-
 client.on("messageCreate", async (msg) => {
     if (msg.author.bot) { // bot同士の会話回避
         return;
@@ -47,7 +46,7 @@ client.on("messageCreate", async (msg) => {
             } catch (e) {
                 //エラー処理
                 console.log(e);
-                msg.reply("実行に失敗しました(E1001a)");
+                msg.reply("実行に失敗しました(E1001a)\nエラーの詳細は`!err`で確認できます。");
             }
         } else {
             var execCode = message[1].trim(); // メッセージの2番目の要素を実行内容とする
@@ -61,7 +60,7 @@ client.on("messageCreate", async (msg) => {
             } catch (e) {
                 //エラー処理
                 console.log(e);
-                msg.reply("実行に失敗しました(E1001b)");
+                msg.reply("実行に失敗しました(E1001b)\nエラーの詳細は`!err`で確認できます。");
             }
         }
 
@@ -72,9 +71,9 @@ client.on("messageCreate", async (msg) => {
                 // シェル上でコマンドを実行できなかった場合のエラー処理
                 if (error !== null) {
                     console.log('exec error: ' + error);
-                    msg.reply("実行に失敗しました(E1002)");
+                    msg.reply("実行に失敗しました(E1004)");
                     if (!stderr) {
-                        msg.reply("既定の実行可能時間を超過しましたので実行を停止しました。リソース枯渇対策のため、高負荷のコード実行を制限しております。実行するコードをご確認ください。(E1003)");
+                        msg.reply("既定の実行可能時間を超過しましたので実行を停止しました。リソース枯渇対策のため、高負荷のコード実行を制限しております。実行するコードをご確認ください。(E1003)\n詳細は`!err`で確認できます。");
                     } else {
                         msg.reply("実行に失敗しました。エラー文を確認してください。(E1004)" + "```" + stderr + "```\n");
                     }
@@ -85,7 +84,7 @@ client.on("messageCreate", async (msg) => {
                     try {
                         fs.writeFileSync('/Containers/c1/run/output.txt', stdout);
                     } catch (e) {
-                        msg.reply("実行結果の出力に失敗しました(E1002)");
+                        msg.reply("実行結果の出力に失敗しました。(E1002)\nエラーの詳細は`!err`で確認できます。");
                     }
                     msg.reply("標準出力が2000文字を超過したため、txtファイルに出力しました。");
                     msg.channel.send({ files: ['/Containers/c1/run/output.txt'] })
