@@ -68,7 +68,7 @@ client.on("messageCreate", async (msg) => {
         console.log("実行内容：\n=================\n" + execCode + "\n=================\n");
 
         try {
-            exec(`docker run --name c1 --rm -u ${execUserID}:${execGroupID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${execSpace}/Containers/c1/run:/run:ro c1`, { timeout: 10000 }, function (error, stdout, stderr) {
+            exec(`docker run --name c1 --rm -u ${execUserID}:${execGroupID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${execSpace}/Containers/c1/run:/run:ro rin/c1`, { timeout: 10000 }, function (error, stdout, stderr) {
                 // シェル上でコマンドを実行できなかった場合のエラー処理
                 if (error !== null) {
                     console.log('exec error: ' + error);
