@@ -1,31 +1,15 @@
-// ========================================================
-// 環境設定
-// ========================================================
-
-// const token = "MTAyODIwMDM3NjI3ODcyMDU3Mw.GTWcpV.ibkBATvN72XabdZfvRIjC694Eu3oX0dq2ytsvI"; // DiscordのBotのトークン(本番環境)
-const token = "MTAyNzE2NDc0ODYyMzY1MDg0Ng.GFEUaU.FjTQl7mVb9k7WPLMNEw82FvvpXswo-gRx6XdEw"
-const botname = "rin"; // Botの名前
-const ver = "v1.1.3"; // 現在バージョン
-
-// ========================================================
-
-require('date-utils');
+const { token, botname, ver } = require('./config.json');
 const fs = require('node:fs');
-const path = require('node:path');
 var exec = require('child_process').exec;
-const execSync = require('child_process').execSync;
-const { Client, GatewayIntentBits, EmbedBuilder, Collection } = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 const client = new Client({
     intents: Object.values(GatewayIntentBits).reduce((a, b) => a | b)
 });
 
-
-
 const helptxt = fs.readFileSync('help.txt', 'utf-8'); // ヘルプテキスト読み込み
-
 console.log(botname + " " + ver + " を起動します");
 
-function omitedText(text) {
+function omitedText(text) { // メッセージ長制限
     const omitMax = 1700;
     if (text.length > omitMax) {
         return text.substring(0, omitMax) + "...";
