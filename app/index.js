@@ -9,6 +9,40 @@ const client = new Client({
 const helptxt = fs.readFileSync('help.txt', 'utf-8'); // ヘルプテキスト読み込み
 console.log(botName + " " + ver + " を起動します"); // 起動メッセージ
 
+const errorMsg = (msg, block, err) => {
+    // エラーメッセージ生成関数 ([0]エラーコード, [1]ブロックid, [2]エラーObj)
+    if (block == 0) {
+        if (err[0] == 1) { // 実行内容が空の場合
+            msg.reply("[E1000] 実行するコードが入力されていません。詳細は`!err`を参照してください。");
+            return;
+        } else if (err[0] == 2) { // ファイル作成に失敗した場合(標準入力なしパターン)
+            msg.reply("[E1001a] 実行ファイルの作成に失敗しました。詳細は`!err`を参照してください。");
+            return;
+        } else if (err[0] == 3) { // ファイル作成に失敗した場合(標準入力ありパターン)
+            msg.reply("[E1001b] 実行ファイルまたは標準入力ファイルの作成に失敗しました。詳細は`!err`を参照してください。");
+            return;
+        } else {
+            msg.reply("[Undefined] 想定外のエラーが発生しました。詳細は`!err`を参照してください。");
+            return;
+        }
+
+    } else if (block == 1) {
+        if (err[0] == 2) {
+            msg.reply("[E1002] 実行結果の出力に失敗しました。詳細は`!err`を参照してください。");
+            return;
+        } else if (err[0] == 3) {
+            msg.reply("[E1003] 入力されたプログラムの実行に失敗しましたが、標準エラー出力が空です。再度お試しください。");
+            return;
+        } else if (err[0] == 4) {
+            msg.reply("[E1004] 構文エラーまたは既定(10s)の実行可能時間を超過したため、実行に失敗しました。エラー文を確認してください。");
+            msg.channel.send({ files: [err[2]] });
+        } else {
+            msg.reply("[Undefined] 想定外のエラーが発生しました。詳細は`!err`を参照してください。");
+            return;
+        }
+    }
+}
+
 const finishExec = (containerName) => {
     // 実行終了処理
     return new Promise((resolve, reject) => {
@@ -32,40 +66,6 @@ const finishExec = (containerName) => {
             reject([1, e]); // 例外2
         }
     });
-}
-
-const errorMsg = (msg, block, err) => {
-    // エラーメッセージ生成関数 ([0]エラーコード, [1]ブロックid, [2]エラーObj)
-    if (block == 0) {
-        if (err[0] == 1) { // 実行内容が空の場合
-            msg.reply("[E1000] 実行するコードが入力されていません。詳細は`!err`を参照してください。");
-            return;
-        } else if (err[0] == 2) { // ファイル作成に失敗した場合(標準入力なしパターン)
-            msg.reply("[E1001a] 実行ファイルの作成に失敗しました。詳細は`!err`を参照してください。");
-            return;
-        } else if (err[0] == 3) { // ファイル作成に失敗した場合(標準入力ありパターン)
-            msg.reply("[E1001b] 実行ファイルまたは標準入力ファイルの作成に失敗しました。詳細は`!err`を参照してください。");
-            return;
-        } else {
-            msg.reply("[Undefined] 想定外のエラーが発生しました。詳細は`!err`を参照してください。");
-            return;
-        }
-
-    } else if (block == 1) {
-        if (err[0] == 2) {
-            msg.reply("[E1002] 実行結果の出力に失敗しました。詳細は`!err`を参照してください。");
-            return;
-        } else if (err[0] == 3) {
-            msg.reply("[E1003] サーバへ負荷がかかる可能性のある処理を検知したため、強制終了しました。詳細は`!err`を参照してください。");
-            return;
-        } else if (err[0] == 4) {
-            msg.reply("[E1004] 構文エラーなどにより実行に失敗しました。エラー文を確認してください。");
-            msg.channel.send({ files: [err[2]] });
-        } else {
-            msg.reply("[Undefined] 想定外のエラーが発生しました。詳細は`!err`を参照してください。");
-            return;
-        }
-    }
 }
 
 const makeFiles = (code, execFile, containerName) => {
@@ -143,19 +143,19 @@ const execCommand = (containerName) => {
                                 reject([3, error]); // E1003
                             } else {
                                 try {
-                                    // 標準出力をファイルに出力
-                                    fs.writeFileSync(`/Containers/${containerName}/run/output.txt`, stderr);
+                                    fs.writeFile(`/Containers/${containerName}/run/output.txt`, stderr, er => { if (er) throw er });
                                 } catch {
-                                    reject([2, e]); // E1002
+                                    reject([2, er]); // E1002
                                 }
-                                reject([4, `/Containers/${containerName}/run/output.txt`]); // E1004
+                                reject([4, stderr, `/Containers/${containerName}/run/output.txt`]); // E1004
                             }
                         }
+
                         try {
                             // 標準出力をファイルに出力
-                            fs.writeFileSync(`/Containers/${containerName}/run/output.txt`, stdout);
+                            fs.writeFile(`/Containers/${containerName}/run/output.txt`, stdout, er => { if (er) throw er });
                         } catch {
-                            reject([2, e]); // E1002
+                            reject([2, er]); // E1002
                         }
 
                         if (stdout.length == 0) {
@@ -198,7 +198,7 @@ client.on("messageCreate", async (msg) => {
         console.log(message.length);
         console.log(message);
 
-        msg.channel.send("開発環境で実行されています");
+        msg.channel.send("[Info] プログラムの実行を開始します");
 
         // 実行ファイル作成
         await makeFiles(message, "main.py", "c1").then((res) => {
@@ -219,13 +219,15 @@ client.on("messageCreate", async (msg) => {
         // 実行
         await execCommand("c1").then((res) => {
             // res[0] = 状態コード, res[1] = 標準出力, res[2] = 出力ファイルパス
-            if (res[0] != 0) {
-                msg.reply("[Serious] 実行中に例外が発生しました。開発者に報告してください。");
-            } else {
+            if (res[0] == 0) {
                 console.log("OK: 実行完了");
                 console.log(`実行結果：\n${res[1]}`);
-                msg.reply("実行結果は以下です。ご確認ください。"); // 実行結果を返信
+                msg.reply("[Done] 実行結果は以下です。ご確認ください。"); // 実行結果を返信
                 msg.channel.send({ files: [res[2]] }) // 実行結果を添付
+            } else if (res[0] == 1) {
+                msg.reply("[Done] 標準出力は空ですが、入力されたプログラムは正常に実行されました。");
+            } else {
+                msg.reply("[Serious] 実行中に例外が発生しました。開発者に報告してください。");
             }
         }).catch((e) => {
             console.log(e);
@@ -234,7 +236,7 @@ client.on("messageCreate", async (msg) => {
             errorMsg(msg, 1, e);
         });
 
-        await finishExec("c1").then((res) => { // res[0] = 状態コード, res[1] = エラー
+        await finishExec("rin/c1").then((res) => { // res[0] = 状態コード, res[1] = エラー
             console.log(res);
             console.log("OK: 終了処理完了");
         }).catch((e) => {
@@ -243,19 +245,57 @@ client.on("messageCreate", async (msg) => {
         });
     }
 
-    // if (msg.content.substring(0, 2) == "!c") { // !cで始まるメッセージのみ反応
-    //     var message = msg.content.split('```'); // メッセージを```で分割
-    //     console.log(message.length);
-    //     console.log(message);
-    //     var result = await execCommand(message, "main.c", "c2");
-    // }
+    if (msg.content.substring(0, 2) == "!c") { // !cで始まるメッセージのみ反応
+        var message = msg.content.split('```'); // メッセージを```で分割 (Ex:[ '!py', 'print("helloWorld")', '', 'こんにちは', '' ])
+        console.log(message.length);
+        console.log(message);
 
-    // if (msg.content.substring(0, 2) == "!j") { // !jで始まるメッセージのみ反応
-    //     var message = msg.content.split('```'); // メッセージを```で分割
-    //     console.log(message.length);
-    //     console.log(message);
-    //     var result = await execCommand(message, "main.java", "c3");
-    // }
+        msg.channel.send("[Info] プログラムの実行を開始します");
+
+        // 実行ファイル作成
+        await makeFiles(message, "main.c", "c2").then((res) => {
+            // res[0] = 状態コード, res[1] = エラー
+            if (res[0] != 0) {
+                msg.reply("[Serious] 例外が発生しました。開発者に報告してください。");
+            } else {
+                console.log("OK: ファイル作成完了");
+                console.log(`実行内容：\n${res[1]}`);
+            }
+        }).catch((e) => {
+            console.log(e);
+            // 定形エラー処理
+            // e[0] = エラーコード, e[1] = エラー内容
+            errorMsg(msg, 0, e);
+        });
+
+        // 実行
+        await execCommand("c2").then((res) => {
+            // res[0] = 状態コード, res[1] = 標準出力, res[2] = 出力ファイルパス
+            if (res[0] == 0) {
+                console.log("OK: 実行完了");
+                console.log(`実行結果：\n${res[1]}`);
+                msg.reply("[Done] 実行結果は以下です。ご確認ください。"); // 実行結果を返信
+                msg.channel.send({ files: [res[2]] }) // 実行結果を添付
+            } else if (res[0] == 1) {
+                msg.reply("[Done] 標準出力は空ですが、入力されたプログラムは正常に実行されました。");
+            } else {
+                msg.reply("[Serious] 実行中に例外が発生しました。開発者に報告してください。");
+            }
+        }).catch((e) => {
+            console.log(e);
+            // 定形エラー処理
+            // e[0] = エラーコード, e[1] = エラー内容
+            errorMsg(msg, 1, e);
+        });
+
+        await finishExec("rin/c2").then((res) => { // res[0] = 状態コード, res[1] = エラー
+            console.log(res);
+            console.log("OK: 終了処理完了");
+        }).catch((e) => {
+            console.log(e);
+            msg.reply("[Serious] 終了処理で重大なエラーが発生しました。開発者に報告してください。");
+        });
+    }
 });
 
 client.login(token);
