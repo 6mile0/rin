@@ -193,7 +193,7 @@ client.on("messageCreate", async (msg) => {
         msg.channel.send("障害対応・緊急の場合は`ろくまいる#5659`までご連絡ください。");
     }
 
-    if (msg.content.substring(0, 4) == "!pyt") { // !pで始まるメッセージのみ反応
+    if (msg.content.substring(0, 3) == "!py") { // !pで始まるメッセージのみ反応
         var message = msg.content.split('```'); // メッセージを```で分割 (Ex:[ '!py', 'print("helloWorld")', '', 'こんにちは', '' ])
         console.log(message.length);
         console.log(message);
