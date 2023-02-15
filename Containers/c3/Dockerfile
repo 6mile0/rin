@@ -4,4 +4,5 @@ FROM amazoncorretto:11
 #    chmod +x /entrypoint.sh
 #ENTRYPOINT ["/entrypoint.sh"]
 
-#CMD  ["cd /run", "&&", "javac ./Main.java", "&&", "java Main"]
+WORKDIR /run
+CMD  ./runner.sh

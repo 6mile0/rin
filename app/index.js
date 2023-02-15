@@ -159,7 +159,7 @@ const execCommand = (containerName) => {
                         }
                     });
             } else if (containerName == "c3") { // Javaの場合
-                exec(`docker run --name ${containerName} --rm -u ${execUserID}:${execGroupID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${execSpace}/Containers/${containerName}/run:/run:ro -v ${execSpace}/Containers/${containerName}/run/Main.class:/run/Main.class rin/${containerName}`, {timeout: 10000},
+                exec(`docker run --name ${containerName} --rm -u ${execUserID}:${execGroupID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${execSpace}/Containers/${containerName}/run:/run:ro -v ${execSpace}/Containers/${containerName}/run/Main.class:/run/Main.class -v ${execSpace}/Containers/${containerName}/run/runner.sh:/run/runner.sh rin/${containerName}`, {timeout: 10000},
                     function (error, stdout, stderr) {
                         // シェル上でコマンドを実行できなかった場合のエラー処理
                         if (error !== null) {
@@ -174,19 +174,26 @@ const execCommand = (containerName) => {
                                 reject([6, stderr, `/Containers/${containerName}/run/output.txt`]); //E1004
                             }
                         }
-
                         try {
                             // 標準出力をファイルに出力
                             fs.writeFile(`/Containers/${containerName}/run/output.txt`, stdout, er => { if (er) throw er});
                         } catch {
+                            console.log("Writing output.txt: ng")
                             reject([4, er]);
                         }
+                        console.log("Writing output.txt: ok")
 
                         if (stdout.length == 0) {
                             // 標準出力が空の場合
-                            resolve([0, "", `/Containers/${containerName}/run/output.txt`]); // 実行結果返却
+                            console.log("Resolving...")
+                            const res = [0, "", `/Containers/${containerName}/run/output.txt`]
+                            console.table(res)
+                            resolve(res); // 実行結果返却
                         } else {
-                            resolve([0, stdout, `/Containers/${containerName}/run/output.txt`]); // 実行結果返却
+                            console.log("Resolving...")
+                            const res = [0, stdout, `/Containers/${containerName}/run/output.txt`]
+                            console.table(res)
+                            resolve(res); // 実行結果返却
                         }
                     }
                 )
@@ -204,41 +211,47 @@ client.once("ready", async () => {
     console.log("準備完了");
 });
 
-const messagingResultMakeAndExec = (res) => { // resには二次元配列が渡される.一行目はmakeFileの結果, 二行目はexecCommandの結果
-     // res[0] = 状態コード, res[1] = エラー
-     if (res[0][0] == 0) {
-        console.log("OK: ファイル作成完了");
-        console.log(`実行内容：\n${res[0][1]}`);
-    } else {
-        msg.reply("[Serious] 例外が発生しました。開発者に報告してください。");
-    }
-
-    // res[0] = 状態コード, res[1] = 標準出力, res[2] = 出力ファイルパス
-    if (res[1][0] == 0) {
-        console.log("OK: 実行完了");
-        console.log(`実行結果：\n${res[1][1]}`);
-        msg.reply("[Done] 実行結果は以下です。ご確認ください。"); // 実行結果を返信
-        msg.channel.send({ files: [res[1][2]] }) // 実行結果を添付
-    } else if (res[1][0] == 1) {
-        msg.reply("[Done] 標準出力は空ですが、入力されたプログラムは正常に実行されました。");
-    } else {
-        msg.reply("[Serious] 実行中に例外が発生しました。開発者に報告してください。");
+const messagingResultMakeAndExec = (msg) => {
+    return (res) => { // resには二次元配列が渡される.一行目はmakeFileの結果, 二行目はexecCommandの結果
+        // res[0] = 状態コード, res[1] = エラー
+        console.log(res)
+        if (res[0][0] == 0) {
+           console.log("OK: ファイル作成完了");
+           console.log(`実行内容：\n${res[0][1]}`);
+       } else {
+           msg.reply("[Serious] 例外が発生しました。開発者に報告してください。");
+       }
+   
+       // res[0] = 状態コード, res[1] = 標準出力, res[2] = 出力ファイルパス
+       if (res[1][0] == 0) {
+           console.log("OK: 実行完了");
+           console.log(`実行結果：\n${res[1][1]}`);
+           msg.reply("[Done] 実行結果は以下です。ご確認ください。"); // 実行結果を返信
+           msg.channel.send({ files: [res[1][2]] }) // 実行結果を添付
+       } else if (res[1][0] == 1) {
+           msg.reply("[Done] 標準出力は空ですが、入力されたプログラムは正常に実行されました。");
+       } else {
+           msg.reply("[Serious] 実行中に例外が発生しました。開発者に報告してください。");
+       }
     }
 }
 
-const messagingResultFinish = (res) => { // res[0] = 状態コード, res[1] = エラー
-    if (res == 1) {
-        console.log("OK: 残留コンテナ削除成功");
-    } else if (res == 2) {
-        msg.reply("[Serious] 終了処理で想定外のエラーが発生しました。開発者に報告してください。");
-    } else { console.log("OK: 残留コンテナなし"); }
-
+const messagingResultFinish = (msg) => {
+    return (res) => { // res[0] = 状態コード, res[1] = エラー
+        if (res == 1) {
+            console.log("OK: 残留コンテナ削除成功");
+        } else if (res == 2) {
+            msg.reply("[Serious] 終了処理で想定外のエラーが発生しました。開発者に報告してください。");
+        } else { console.log("OK: 残留コンテナなし"); }
+    
+    }
 }
 
-const messagingError = (e) => {
-    console.log(e);
-    msg.reply("[Serious] 終了処理で重大なエラーが発生しました。開発者に報告してください。");
-
+const messagingError = (msg) => {
+    return (e) => {
+        console.log(e);
+        msg.reply("[Serious] 終了処理で重大なエラーが発生しました。開発者に報告してください。");
+    }
 }
 
 client.on("messageCreate", async (msg) => {
@@ -263,7 +276,7 @@ client.on("messageCreate", async (msg) => {
         msg.channel.send("[Info] プログラム(Python)の実行を開始します");
 
         await Promise.all([makeFiles(message, "main.py", "c1"), execCommand("c1")])
-        .then(messagingResultMakeAndExec)
+        .then(messagingResultMakeAndExec(msg))
         .catch((e) => {
             console.log(e);
             // 定形エラー処理
@@ -272,8 +285,8 @@ client.on("messageCreate", async (msg) => {
         });
 
         await finishExec("rin/c1")
-        .then(messagingResultFinish)
-        .catch(messagingError);
+        .then(messagingResultFinish(msg))
+        .catch(messagingError(msg));
     }
 
     if ((msg.channel.id == cChId) && (msg.content.substring(0, 2) == "!c")) { // !cで始まるメッセージのみ反応
@@ -284,7 +297,7 @@ client.on("messageCreate", async (msg) => {
         msg.channel.send("[Info] プログラム(C言語)の実行を開始します");
 
         await Promise.all([makeFiles(message, "main.c", "c2"), execCommand("c2")])
-        .then(messagingResultMakeAndExec)
+        .then(messagingResultMakeAndExec(msg))
         .catch((e) => {
             console.log(e);
             // 定形エラー処理
@@ -293,8 +306,8 @@ client.on("messageCreate", async (msg) => {
         });
 
         await finishExec("rin/c2")
-        .then(messagingResultFinish)
-        .catch(messagingError);
+        .then(messagingResultFinish(msg))
+        .catch(messagingError(msg));
     }
 
     if((msg.channel.id == javaChId) && (msg.content.substring(0,2) == "!j")) { // jで始まるメッセージに反応
@@ -304,8 +317,8 @@ client.on("messageCreate", async (msg) => {
 
         msg.channel.send("[Info] プログラム(Java)の実行を開始します");
 
-        await Promise.all([makeFiles(message, "Main.java", "c3")], execCommand("c3"))
-        .then(messagingResultMakeAndExec)
+        await Promise.all([makeFiles(message, "Main.java", "c3"), execCommand("c3")])
+        .then(messagingResultMakeAndExec(msg))
         .catch((e) => {
             console.log(e);
             // 定型エラー処理
@@ -314,8 +327,8 @@ client.on("messageCreate", async (msg) => {
         })
 
         await finishExec("rin/c3")
-        .then(messagingResultFinish)
-        .catch(messagingError)
+        .then(messagingResultFinish(msg))
+        .catch(messagingError(msg))
     }
 });
 
