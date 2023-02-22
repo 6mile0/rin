@@ -159,7 +159,7 @@ const execCommand = (containerName) => {
                         }
                     });
             } else if (containerName == "c3") { // Javaの場合
-                exec(`docker run --name ${containerName} --rm -u ${execUserID}:${execGroupID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${execSpace}/Containers/${containerName}/run:/run:ro -v ${execSpace}/Containers/${containerName}/run/Main.class:/run/Main.class -v ${execSpace}/Containers/${containerName}/run/runner.sh:/run/runner.sh rin/${containerName}`, { timeout: 10000 },
+                exec(`docker run --name ${containerName} --rm -u ${execUserID}:${execGroupID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${execSpace}/Containers/${containerName}/run:/run:ro -v ${execSpace}/Containers/${containerName}/run/Main.class:/run/Main.class rin/${containerName}`, { timeout: 10000 },
                     function (error, stdout, stderr) {
                         // シェル上でコマンドを実行できなかった場合のエラー処理
                         if (error !== null) {
