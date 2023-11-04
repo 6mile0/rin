@@ -1,0 +1,3 @@
+Unable to find image 'rin/c5:latest' locally
+docker: Error response from daemon: pull access denied for rin/c5, repository does not exist or may require 'docker login': denied: requested access to the resource is denied.
+See 'docker run --help'.
