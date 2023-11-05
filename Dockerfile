@@ -20,6 +20,7 @@ RUN apt-get install -y \
 # BOTをコンテナ内にコピー
 WORKDIR /app
 COPY /app ./
-RUN yarn install
+RUN npm install
+RUN npm run compile
 
-CMD [ "node", "index.js" ]
+CMD [ "npm", "run", "start" ]

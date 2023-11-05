@@ -53,11 +53,6 @@ const helpTxt: string = fs.readFileSync(`help.txt`, 'utf-8');
 
 // ===================================================================================================
 
-if (!fs.existsSync(`${process.env.EXECSPACE}/Containers`)) {
-    throw new Error("Containersフォルダが存在しません。");
-}
-
-
 class Runner {
     static outputFile: string;
     static inputFile: string;
@@ -73,13 +68,13 @@ class Runner {
         this.containerType = container.containerId;
 
         // 実行ファイルのパス
-        Runner.execFile = `${process.env.EXECSPACE}/Containers/${this.containerType}/run/${container.filename}`
+        Runner.execFile = `/Containers/${this.containerType}/run/${container.filename}`
 
         // 出力ファイルのパス
-        Runner.outputFile = `${process.env.EXECSPACE}/Containers/${this.containerType}/run/output.txt`;
+        Runner.outputFile = `/Containers/${this.containerType}/run/output.txt`;
 
         // 標準入力ファイルのパス
-        Runner.inputFile = `${process.env.EXECSPACE}/Containers/${this.containerType}/run/input.txt`;
+        Runner.inputFile = `/Containers/${this.containerType}/run/input.txt`;
 
         // コマンド
         this.command = `docker run --name ${this.containerType} --rm --network=none -u ${process.env.EXECUSERID}:${process.env.EXECGROUPID} -v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -v ${process.env.EXECSPACE}/Containers/${this.containerType}/run:/run:ro rin/${this.containerType}`;
