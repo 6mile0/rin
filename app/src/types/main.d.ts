@@ -8,7 +8,7 @@ export type Container = {
 
 export type ContainerLists = Array<Container>
 
-export type execLang = "py" | "c" | "java" | "nako3";
+export type execLang = "py" | "c" | "java" | "nako3" ;
 
 export type containerType = "c1" | "c2" | "c3" | "c5";
 

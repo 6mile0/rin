@@ -6,7 +6,13 @@ import dotenv from 'dotenv'
 dotenv.config();
 
 
-if (process.env.PYCHID == undefined || process.env.CCHID == undefined || process.env.JAVACHID == undefined || process.env.NAKO3CHID == undefined || process.env.SQLCHID == undefined) {
+if (
+    process.env.PYCHID == undefined
+    || process.env.CCHID == undefined
+    || process.env.JAVACHID == undefined
+    || process.env.NAKO3CHID == undefined
+    || process.env.SQLCHID == undefined
+    || process.env.BASHCHID == undefined) {
     throw new Error("環境変数が設定されていません。");
 }
 
@@ -45,6 +51,13 @@ const containerLists: ContainerLists = [
         filename: "main.sql",
         id: process.env.SQLCHID,
         containerId: "c6"
+    },
+    {
+        prefix: "bash",
+        lang: "Bash",
+        filename: "main.sh",
+        id: process.env.BASHCHID,
+        containerId: "c7"
     }
 ];
 
@@ -110,7 +123,7 @@ class Runner {
             try {
                 exec(this.command, { timeout: 10000 },
                     function (error, stdout, stderr) {
-                        if(error && error.signal == "SIGTERM"){
+                        if (error && error.signal == "SIGTERM") {
                             try {
                                 fs.writeFile(Runner.outputFile, stderr, er => { if (er) throw er });
                                 let res: resList = {
@@ -333,14 +346,14 @@ client.on(Events.MessageCreate, async (msg) => {
 
             msg.channel.send(":white_check_mark: プログラムの実行が完了しました。");
 
-            if(!response.stdout || response.stdout.length == 0 || response.stdout?.length == 1){
+            if (!response.stdout || response.stdout.length == 0 || response.stdout?.length == 1) {
                 // 標準出力が空の場合
                 msg.reply(":warning: 標準出力が空です。");
-            }else if (response.stdout && response.stdout.length > 2000) {
+            } else if (response.stdout && response.stdout.length > 2000) {
                 // 標準出力が2000文字を超える場合
                 msg.reply(":warning: 標準出力が長すぎるため、実行結果のファイルを添付します。");
                 response.output && msg.channel.send({ files: [response.output] });
-            }else{
+            } else {
                 // 標準出力が2000文字以内の場合
                 msg.channel.send("```" + response.stdout + "```");
             }
@@ -359,14 +372,14 @@ client.on(Events.MessageCreate, async (msg) => {
             if (err.code == "E1004") {
                 msg.reply(":x: プログラムの実行に失敗しました。");
                 console.log(err.stderr);
-                
-                if(!err.stderr || err.stderr.length == 0 || err.stderr?.length == 1){
+
+                if (!err.stderr || err.stderr.length == 0 || err.stderr?.length == 1) {
                     // 標準出力が空の場合
                     msg.reply(":warning: 標準エラー出力が空です。");
-                } else if(err.stderr && err.stderr.length > 2000){
+                } else if (err.stderr && err.stderr.length > 2000) {
                     msg.reply(":warning: 標準エラー出力が長すぎるため、実行結果のファイルを添付します。");
                     err.output && msg.channel.send({ files: [err.output] });
-                }else{
+                } else {
                     // 標準出力が2000文字以内の場合
                     msg.channel.send("```" + err.stderr + "```");
                 }
