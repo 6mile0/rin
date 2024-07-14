@@ -1,11 +1,23 @@
-FROM node:18.13-bullseye-slim
+FROM node:18-bullseye-slim
 
 # アップデート
 RUN apt-get update && apt-get -y upgrade
 RUN npm update -g npm
 
+# ロケール設定
+RUN apt-get install -y locales \
+    && sed -i -E 's/# (ja_JP.UTF-8)/\1/' /etc/locale.gen \
+    && locale-gen \
+    && update-locale LANG=ja_JP.UTF-8 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+ENV LC_ALL ja_JP.UTF-8
+
+# タイムゾーン設定
+ENV TZ=Asia/Tokyo
+
 # Dockerのインストール
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
     gnupg \
